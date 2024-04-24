@@ -30,11 +30,20 @@ app.get('/products/:id', (req, res) => {
 });
 
 app.post('/products', (req, res) => {
-  console.log(req.body);
+  const { title, price, desc } = req.body;
 
   // add a new product inside my DB products and send back to the client the new created product
 
-  res.send('ok');
+  const product = {
+    id: Math.trunc(Math.random() * 1000) + '',
+    title,
+    price,
+    desc,
+  };
+
+  products.push(product);
+
+  res.status(201).send({ ok: true, data: product });
 });
 
 app.put('/products/:id', (req, res) => {
@@ -42,9 +51,40 @@ app.put('/products/:id', (req, res) => {
   // 2 - find the corresponding product
   // 3 - update the product
   // 4 - send back the updated product
+
+  const id = req.params.id;
+
+  const product = products.find(product => product.id === id);
+
+  if (!product) {
+    return res.status(404).send({ ok: false, msg: 'Product not found' });
+  }
+
+  for (let key in req.body) {
+    product[key] = req.body[key];
+  }
+
+  console.log(products);
+
+  const updatedProduct = { ...product, ...req.body };
+
+  res.send({ ok: true, data: updatedProduct });
 });
 
-app.delete('/products/:id', (req, res) => {});
+app.delete('/products/:id', (req, res) => {
+  // @TODO
+  const id = req.params.id;
+
+  const idx = products.findIndex(product => product.id === id);
+
+  if (idx === -1) {
+    return res.status(404).send({ ok: false, msg: 'Product not found' });
+  }
+
+  const [deletedProduct] = products.splice(idx, 1);
+
+  res.send({ ok: true, data: deletedProduct });
+});
 
 app.listen(2000, () =>
   console.log('RDY to listen to incoming requests on port 2000')
